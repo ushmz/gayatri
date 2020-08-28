@@ -8,6 +8,7 @@ authors = ["Yusuke Shimizu <44394399+rabhareit@users.noreply.github.com>"]
 python = "3.6.7"
 flask = "^1.1.2"
 mysql-connector-python = "^8.0.21"
+configparser = "^5.0.0"
 
 [tool.poetry.dev-dependencies]
 
