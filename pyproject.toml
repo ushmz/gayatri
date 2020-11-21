@@ -9,6 +9,9 @@ python = "3.6.7"
 flask = "^1.1.2"
 mysql-connector-python = "^8.0.21"
 configparser = "^5.0.0"
+fastapi = "^0.61.2"
+uvicorn = "^0.12.2"
+typing = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 
