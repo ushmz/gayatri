@@ -2,9 +2,10 @@ import configparser
 from enum import unique
 import json
 from fastapi import FastAPI
+from pydantic import BaseModel
 import re
 import urllib.parse
-from typing import Any, Union
+from typing import Any, List, Optional
 
 # from webXray.webxray import Collector
 from webxray.MySQLDriver import MySQLDriver
@@ -18,8 +19,22 @@ config.read('config.ini')
 
 EXTENTION_ID = config['DEFAULT']['extension_id']
 
+class BrowserHistory(BaseModel):
+    id: Optional[str] = ''
+    lastVisitTime: Optional[float] = 0.
+    title: str
+    typedCount: Optional[int] = 0
+    url: str
+    visitCount: Optional[int] = 0
+class HistoryRequestBody(BaseModel):
+    data: List[BrowserHistory]
+    description: Optional[str] = ''
+
 # ?
 def after_request(response):
+    """
+    TODO: For using in chrome extension, add following data in response header
+    """
     #response.headers.add('Access-Control-Allow-Origin', f'chrome-extension://{EXTENTION_ID}')
     response.headers.add('Access-Control-Allow-Origin', 'https://www.google.com')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
@@ -28,7 +43,7 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Headers', "X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept")
     return response
 
-def uri_filter(uri: str) -> bool:
+def history_filter(histry: BrowserHistory) -> bool:
     """
     It is implied that this method is passed to `filter`.  
 
@@ -37,12 +52,13 @@ def uri_filter(uri: str) -> bool:
     Return:
         (bool): Keep given uri in list or not
     """
+    url = histry.url
     # drop trailing '/, clean off white space, make lower, create cli-safe uri
     # with parse.quote, but exclude :/ b/c of http://
-    uri = re.sub('/$', '', urllib.parse.quote(uri.strip(), safe=":/").lower())
+    url = re.sub('/$', '', urllib.parse.quote(url.strip(), safe=":/").lower())
 
     # if it is a m$ office or other doc, skip
-    if re.match('.+(pdf|ppt|pptx|doc|docx|txt|rtf|xls|xlsx)$', uri):
+    if re.match('.+(pdf|ppt|pptx|doc|docx|txt|rtf|xls|xlsx)$', url):
         return False
     return True
 
@@ -51,15 +67,21 @@ def get_cookie_domain(db: Any, uri: str) -> dict:
     """
     Check Stored data. If given uri is exist in stored data, return cookie list contained in given uri.
     If not, analyze uri and return result.
+    DB query return...
+    - 0 rows -> Given URL page is not stored in DB
+    - 1 row but null -> Given URL page has no 3rd-party cookie
+    - More than 0 row -> Given URL page has 3rd-party cookie(s)
+
     Args:
         uri(str): Any URI
     Return:
         (dict {"uri": list[str]}): (key: given uri, value: listed domain name of cookies)
     """
     db.execute("SELECT cookie.`domain` FROM page LEFT JOIN page_cookie_junction ON page.id = page_cookie_junction.page_id LEFT JOIN cookie ON page_cookie_junction.cookie_id = cookie.id WHERE page.start_uri_md5 = MD5(%s)", (uri,))
-    if db.fetchall():
+    fetched = db.fetchall()
+    if fetched:
         "TODO: Format database output"
-        return {uri: db.fetchall()} 
+        return {uri: fetched} 
     else:
         return analyze_url(uri)
         
@@ -92,17 +114,14 @@ def analyze_url(uri: str) -> dict:
         }
     return resp
 
-# @app.route('/analyze', methods=["POST"])
-def postURI(request):
+@app.post('/analyze')
+async def postURI(request: HistoryRequestBody):
     db_name = 'wbxr_gayatri'
     sql_driver = MySQLDriver(db_name)
 
     # Recieve request body
-    user_histories = request.data['histories']
-    uri_process = list(filter(uri_filter, user_histories))
+    user_histories = request.data
+    history_process = list(filter(history_filter, user_histories))
     # Return this as a HTTP response
-    response = [ get_cookie_domain(sql_driver, uri) for uri in uri_process]
-    
-
-resp = analyze_url('https://qiita.com/pipi0813/items/1a940f4452e28345c031')
-print(resp)
+    response = [ get_cookie_domain(sql_driver.db, hstr.url) for hstr in history_process]
+    return response 
