@@ -12,6 +12,7 @@ configparser = "^5.0.0"
 fastapi = "^0.61.2"
 uvicorn = "^0.12.2"
 typing = "^3.7.4"
+python-multipart = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
 
