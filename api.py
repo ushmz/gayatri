@@ -7,7 +7,7 @@ from pydantic import BaseModel
 import time
 import re
 import urllib.parse
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from starlette.responses import JSONResponse 
 
@@ -28,7 +28,7 @@ class BrowserHistory(BaseModel):
     url: str
     visitCount: Optional[int] = 0
 
-class ExtensionBaseRequest(BaseModel):
+class ExtensionBaseRequest(BaseModel): 
     ext_id: str
 
 class HistoryRequestBody(ExtensionBaseRequest):
@@ -38,6 +38,9 @@ class HistoryRequestBody(ExtensionBaseRequest):
 
 @app.middleware('http')
 async def add_cors_header(request: Request, call_next):
+    """
+    In middleware, it seems to block application to execute `await request.json()` or something read request.
+    """
     start_time = time.time()
     response = await call_next(request)
     # if ext_id: response.headers['Access-Control-Allow-Origin'] = f'"chrome-extension://{ext_id}/"'
@@ -45,6 +48,12 @@ async def add_cors_header(request: Request, call_next):
     # response.headers['Access-Control-Allow-Headers'] = '"X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept"'
     process_time = time.time() - start_time
     response.headers['X-Process-Time'] = str(process_time)
+    return response
+
+def add_cors_header(response: JSONResponse, ext_id: str):
+    response.headers['Access-Control-Allow-Origin'] = f'chrome-extension://{ext_id}'
+    response.headers['Access-Control-Allow-Methods'] = 'post'
+    response.headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept'
     return response
 
 def history_filter(histry: BrowserHistory) -> bool:
@@ -147,9 +156,9 @@ async def post_uri(request: HistoryRequestBody):
     } for hstr in history_process]
     response = JSONResponse(histories) 
     print('DONE. Return')
-    response.headers['Access-Control-Allow-Origin'] = f'"chrome-extension://{request.ext_id}/"'
-    response.headers['Access-Control-Allow-Methods'] = '"post"'
-    response.headers['Access-Control-Allow-Headers'] = '"X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept"'
+    response.headers['Access-Control-Allow-Origin'] = f'chrome-extension://{request.ext_id}'
+    response.headers['Access-Control-Allow-Methods'] = 'post'
+    response.headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept'
     return response 
 
 # @app_router.post('/ping')
@@ -158,9 +167,9 @@ async def ping_pong(request: ExtensionBaseRequest):
     ext_id = request.ext_id
     request_json = request.json()
     response = JSONResponse(request_json)
-    response.headers['Access-Control-Allow-Origin'] = f'"chrome-extension://{ext_id}/"'
-    response.headers['Access-Control-Allow-Methods'] = '"post"'
-    response.headers['Access-Control-Allow-Headers'] = '"X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept"'
+    response.headers['Access-Control-Allow-Origin'] = f'chrome-extension://{ext_id}'
+    response.headers['Access-Control-Allow-Methods'] = 'post'
+    response.headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept'
     return response 
 
 # app.include_router(app_router, dependencies=[Depends(add_cors_header)])
