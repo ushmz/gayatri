@@ -52,6 +52,7 @@ async def add_cors_header(request: Request, call_next):
 
 def add_cors_header(response: JSONResponse, ext_id: str):
     response.headers['Access-Control-Allow-Origin'] = f'chrome-extension://{ext_id}'
+    response.headers['Vary'] = 'Origin'
     response.headers['Access-Control-Allow-Methods'] = 'post'
     response.headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept'
     return response
@@ -157,6 +158,7 @@ async def post_uri(request: HistoryRequestBody):
     response = JSONResponse(histories) 
     print('DONE. Return')
     response.headers['Access-Control-Allow-Origin'] = f'chrome-extension://{request.ext_id}'
+    response.headers['Vary'] = 'Origin'
     response.headers['Access-Control-Allow-Methods'] = 'post'
     response.headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept'
     return response 
@@ -168,6 +170,7 @@ async def ping_pong(request: ExtensionBaseRequest):
     request_json = request.json()
     response = JSONResponse(request_json)
     response.headers['Access-Control-Allow-Origin'] = f'chrome-extension://{ext_id}'
+    response.headers['Vary'] = 'Origin'
     response.headers['Access-Control-Allow-Methods'] = 'post'
     response.headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Origin, X-Csrftoken, Content-Type, Accept'
     return response 
