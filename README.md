@@ -1,6 +1,6 @@
 # Gayatri
 
-This is API server work with chrome extension `savitri` 
+This is API server works with chrome extension `savitri` 
 
 ## Requirements
 poetry(python 3.8)
