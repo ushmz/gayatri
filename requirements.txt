@@ -1,0 +1,16 @@
+click==7.1.2
+configparser==5.0.0
+dataclasses==0.8
+fastapi==0.61.2
+h11==0.11.0
+mysql-connector-python==8.0.21
+protobuf==3.13.0
+pydantic==1.7.2
+python-multipart==0.0.5
+selenium==3.141.0
+six==1.15.0
+starlette==0.13.6
+typing==3.7.4.3
+typing-extensions==3.7.4.3
+urllib3==1.25.10
+uvicorn==0.12.2
