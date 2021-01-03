@@ -1,4 +1,5 @@
 import configparser
+from typing import Union
 from fastapi import FastAPI
 from pydantic import BaseModel
 import mysql.connector as mydb
@@ -17,12 +18,37 @@ app.add_middleware(
 )
 
 
-class UserLoggingRequest(BaseModel):
+class BehaviorLoggingRequest(BaseModel):
     id: str
-    uid: str
     timeOnPage: int
+    positionOnPage: int
+
+    def queryalize(self):
+        return "INSERT INTO table_name VALUES({}, {}, {})".format(
+            self.id, self.timeOnPage, self.positionOnPage
+        )
+
+
+class DocumentLoggingRequest(BaseModel):
+    id: str
     pageUrl: str
     linkedPageNum: int
+
+    def queryalize(self):
+        return "INSERT INTO table_name VALUES({}, {}, {})".format(
+            self.id, self.pageUrl, self.linkedPageNum
+        )
+
+
+class HistoryLoggingRequest(BaseModel):
+    id: str
+    linkedDocumentUrl: str
+    linkedPageNum: int
+
+    def queryalize(self):
+        return "INSERT INTO table_name VALUES({}, {}, {})".format(
+            self.id, self.linkedDocumentUrl, self.linkedPageNum
+        )
 
 
 def get_db_connection():
@@ -38,8 +64,22 @@ def get_db_connection():
     )
 
 
-@app.post("/storelog")
-async def post_user_log(request: UserLoggingRequest):
+@app.post("/printlog")
+async def print_user_log(
+    request: Union[
+        BehaviorLoggingRequest, DocumentLoggingRequest, HistoryLoggingRequest
+    ]
+):
+    """
+    Recieve User log object, return status.
+    """
+    print(request.queryalize())
+
+    return JSONResponse(content={"status": True, "query": request.queryalize()})
+
+
+@app.post("/api/logs/behavior")
+async def post_behavior_logs(request: BehaviorLoggingRequest):
     """
     Recieve User log object, return status.
     """
@@ -49,12 +89,68 @@ async def post_user_log(request: UserLoggingRequest):
 
     try:
         cursor.execute(
-            "INSERT INTO logs VALUES(%s, %s, %s, %s, %s)",
+            "INSERT INTO logs VALUES(%s, %s, %s)",
+            (request.id, request.timeOnPage, request.positionOnPage),
+        )
+    except Exception as e:
+        print(e)
+        status = False
+    else:
+        status = True
+        cursor.commit()
+    finally:
+        cursor.close()
+        connection.close()
+
+    return JSONResponse(content={"status": status})
+
+
+@app.post("/api/logs/click/docs")
+async def post_documents_log(request: DocumentLoggingRequest):
+    """
+    Recieve User log object, return status.
+    """
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    status = False
+
+    try:
+        cursor.execute(
+            "INSERT INTO logs VALUES(%s, %s, %s)",
             (
                 request.id,
-                request.uid,
-                request.timeOnPage,
                 request.pageUrl,
+                request.linkedPageNum,
+            ),
+        )
+    except Exception as e:
+        print(e)
+        status = False
+    else:
+        status = True
+        cursor.commit()
+    finally:
+        cursor.close()
+        connection.close()
+
+    return JSONResponse(content={"status": status})
+
+
+@app.post("/api/logs/click/hstr")
+async def post_history_log(request: HistoryLoggingRequest):
+    """
+    Recieve User log object, return status.
+    """
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    status = False
+
+    try:
+        cursor.execute(
+            "INSERT INTO logs VALUES(%s, %s, %s)",
+            (
+                request.id,
+                request.linkedDocumentUrl,
                 request.linkedPageNum,
             ),
         )
