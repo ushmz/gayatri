@@ -13,8 +13,9 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
+
 
 class UserLoggingRequest(BaseModel):
     id: str
@@ -22,6 +23,7 @@ class UserLoggingRequest(BaseModel):
     timeOnPage: int
     pageUrl: str
     linkedPageNum: int
+
 
 def get_db_connection():
     _parser = configparser.ConfigParser()
@@ -32,10 +34,11 @@ def get_db_connection():
         port=_parser["mysql"]["port"],
         user=_parser["mysql"]["user"],
         password=_parser["mysql"]["password"],
-        database=_parser["mysql"]["database"]
+        database=_parser["mysql"]["database"],
     )
 
-@app.post('/storelog')
+
+@app.post("/storelog")
 async def post_user_log(request: UserLoggingRequest):
     """
     Recieve User log object, return status.
@@ -45,19 +48,29 @@ async def post_user_log(request: UserLoggingRequest):
     status = False
 
     try:
-        cursor.execute('INSERT INTO logs VALUES(%s, %s, %s, %s, %s)', (request.id, request.uid, request.timeOnPage, request.pageUrl, request.linkedPageNum))
+        cursor.execute(
+            "INSERT INTO logs VALUES(%s, %s, %s, %s, %s)",
+            (
+                request.id,
+                request.uid,
+                request.timeOnPage,
+                request.pageUrl,
+                request.linkedPageNum,
+            ),
+        )
     except Exception as e:
         print(e)
         status = False
-    else: 
+    else:
         status = True
         cursor.commit()
     finally:
         cursor.close()
         connection.close()
 
-    return JSONResponse(content={'status': status})
+    return JSONResponse(content={"status": status})
 
-@app.post('/ping')
+
+@app.post("/ping")
 async def ping_pong(request: BaseModel):
-    return request 
+    return request
