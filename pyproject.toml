@@ -12,6 +12,8 @@ fastapi = "^0.61.2"
 uvicorn = "^0.12.2"
 typing = "^3.7.4"
 python-multipart = "^0.0.5"
+black = "^20.8b1"
+flake8 = "^3.8.4"
 
 [tool.poetry.dev-dependencies]
 
