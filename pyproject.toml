@@ -5,7 +5,7 @@ description = ""
 authors = ["Yusuke Shimizu <44394399+rabhareit@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
-python = "3.6.7"
+python = "^3.6.7"
 mysql-connector-python = "^8.0.21"
 configparser = "^5.0.0"
 fastapi = "^0.61.2"
