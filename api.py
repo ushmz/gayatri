@@ -18,15 +18,30 @@ app.add_middleware(
 )
 
 
+BEHAVIOR_LOG_QUERT = (
+    "INSERT INTO behavior_log(ext_id, time_on_page, position_on_page)"
+    "VALUES(%s, %s, %s)"
+)
+
+
+CLICK_DOC_LOG_QUERY = (
+    "INSERT INTO click_log_doc(ext_id, page_url, linked_page_num)" "VALUES(%s, %s, %s)"
+)
+
+
+CLICK_HISTORY_LOG_QUERY = (
+    "INSERT INTO click_log_history(ext_id, linked_doc_url, linked_page_num)"
+    "VALUES(%s, %s, %s)"
+)
+
+
 class BehaviorLoggingRequest(BaseModel):
     id: str
     timeOnPage: int
     positionOnPage: int
 
     def queryalize(self) -> str:
-        return "INSERT INTO table_name VALUES({}, {}, {})".format(
-            self.id, self.timeOnPage, self.positionOnPage
-        )
+        return BEHAVIOR_LOG_QUERT.format(self.id, self.timeOnPage, self.positionOnPage)
 
 
 class DocumentLoggingRequest(BaseModel):
@@ -35,9 +50,7 @@ class DocumentLoggingRequest(BaseModel):
     linkedPageNum: int
 
     def queryalize(self) -> str:
-        return "INSERT INTO table_name VALUES({}, {}, {})".format(
-            self.id, self.pageUrl, self.linkedPageNum
-        )
+        return CLICK_DOC_LOG_QUERY.format(self.id, self.pageUrl, self.linkedPageNum)
 
 
 class HistoryLoggingRequest(BaseModel):
@@ -46,7 +59,7 @@ class HistoryLoggingRequest(BaseModel):
     linkedPageNum: int
 
     def queryalize(self) -> str:
-        return "INSERT INTO table_name VALUES({}, {}, {})".format(
+        return CLICK_HISTORY_LOG_QUERY.format(
             self.id, self.linkedDocumentUrl, self.linkedPageNum
         )
 
@@ -56,11 +69,11 @@ def get_db_connection():
     _parser.read("./config.ini")
 
     return mydb.connect(
-        host=_parser["host"],
-        port=_parser["port"],
-        user=_parser["user"],
-        password=_parser["password"],
-        database=_parser["database"],
+        host=_parser["mysql"]["host"],
+        port=_parser["mysql"]["port"],
+        user=_parser["mysql"]["user"],
+        password=_parser["mysql"]["password"],
+        database=_parser["mysql"]["database"],
     )
 
 
@@ -89,15 +102,15 @@ async def post_behavior_logs(request: BehaviorLoggingRequest):
 
     try:
         cursor.execute(
-            "INSERT INTO logs VALUES(%s, %s, %s)",
+            BEHAVIOR_LOG_QUERT,
             (request.id, request.timeOnPage, request.positionOnPage),
         )
     except Exception as e:
         print(e)
         status = False
     else:
+        connection.commit()
         status = True
-        cursor.commit()
     finally:
         cursor.close()
         connection.close()
@@ -116,7 +129,7 @@ async def post_documents_log(request: DocumentLoggingRequest):
 
     try:
         cursor.execute(
-            "INSERT INTO logs VALUES(%s, %s, %s)",
+            CLICK_DOC_LOG_QUERY,
             (
                 request.id,
                 request.pageUrl,
@@ -127,8 +140,8 @@ async def post_documents_log(request: DocumentLoggingRequest):
         print(e)
         status = False
     else:
+        connection.commit()
         status = True
-        cursor.commit()
     finally:
         cursor.close()
         connection.close()
@@ -147,7 +160,7 @@ async def post_history_log(request: HistoryLoggingRequest):
 
     try:
         cursor.execute(
-            "INSERT INTO logs VALUES(%s, %s, %s)",
+            CLICK_HISTORY_LOG_QUERY,
             (
                 request.id,
                 request.linkedDocumentUrl,
@@ -158,8 +171,8 @@ async def post_history_log(request: HistoryLoggingRequest):
         print(e)
         status = False
     else:
+        connection.commit()
         status = True
-        cursor.commit()
     finally:
         cursor.close()
         connection.close()
