@@ -23,7 +23,7 @@ class BehaviorLoggingRequest(BaseModel):
     timeOnPage: int
     positionOnPage: int
 
-    def queryalize(self):
+    def queryalize(self) -> str:
         return "INSERT INTO table_name VALUES({}, {}, {})".format(
             self.id, self.timeOnPage, self.positionOnPage
         )
@@ -34,7 +34,7 @@ class DocumentLoggingRequest(BaseModel):
     pageUrl: str
     linkedPageNum: int
 
-    def queryalize(self):
+    def queryalize(self) -> str:
         return "INSERT INTO table_name VALUES({}, {}, {})".format(
             self.id, self.pageUrl, self.linkedPageNum
         )
@@ -45,7 +45,7 @@ class HistoryLoggingRequest(BaseModel):
     linkedDocumentUrl: str
     linkedPageNum: int
 
-    def queryalize(self):
+    def queryalize(self) -> str:
         return "INSERT INTO table_name VALUES({}, {}, {})".format(
             self.id, self.linkedDocumentUrl, self.linkedPageNum
         )
@@ -53,14 +53,14 @@ class HistoryLoggingRequest(BaseModel):
 
 def get_db_connection():
     _parser = configparser.ConfigParser()
-    _parser.read("./mysql.ini")
+    _parser.read("./config.ini")
 
     return mydb.connect(
-        host=_parser["mysql"]["host"],
-        port=_parser["mysql"]["port"],
-        user=_parser["mysql"]["user"],
-        password=_parser["mysql"]["password"],
-        database=_parser["mysql"]["database"],
+        host=_parser["host"],
+        port=_parser["port"],
+        user=_parser["user"],
+        password=_parser["password"],
+        database=_parser["database"],
     )
 
 
