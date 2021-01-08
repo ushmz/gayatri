@@ -19,8 +19,8 @@ app.add_middleware(
 
 
 BEHAVIOR_LOG_QUERT = (
-    "INSERT INTO behavior_log(ext_id, time_on_page, position_on_page)"
-    "VALUES(%s, %s, %s)"
+    "INSERT INTO behavior_log(ext_id, time_on_page, current_page, position_on_page)"
+    "VALUES(%s, %s, %s, %s)"
 )
 
 
@@ -38,10 +38,13 @@ CLICK_HISTORY_LOG_QUERY = (
 class BehaviorLoggingRequest(BaseModel):
     id: str
     timeOnPage: int
+    currentPage: int
     positionOnPage: int
 
     def queryalize(self) -> str:
-        return BEHAVIOR_LOG_QUERT.format(self.id, self.timeOnPage, self.positionOnPage)
+        return BEHAVIOR_LOG_QUERT.format(
+            self.id, self.timeOnPage, self.currentPage, self.positionOnPage
+        )
 
 
 class DocumentLoggingRequest(BaseModel):
@@ -103,7 +106,12 @@ async def post_behavior_logs(request: BehaviorLoggingRequest):
     try:
         cursor.execute(
             BEHAVIOR_LOG_QUERT,
-            (request.id, request.timeOnPage, request.positionOnPage),
+            (
+                request.id,
+                request.timeOnPage,
+                request.currentPage,
+                request.positionOnPage,
+            ),
         )
     except Exception as e:
         print(e)
