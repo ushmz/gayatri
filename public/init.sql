@@ -3,6 +3,7 @@ CREATE TABLE behavior_log(
     id INTEGER AUTO_INCREMENT,
     ext_id VARCHAR(32),
     time_on_page INTEGER,
+    current_page INTEGER,
     position_on_page INTEGER,
     PRIMARY KEY(id)
 );
