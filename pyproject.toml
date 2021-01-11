@@ -14,12 +14,9 @@ typing = "^3.7.4"
 python-multipart = "^0.0.5"
 black = "^20.8b1"
 flake8 = "^3.8.4"
+pycryptodome = "^3.9.9"
 
 [tool.poetry.dev-dependencies]
-
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
 
 [tool.black]
 line-length = 88
@@ -31,3 +28,7 @@ exclude = '''
   | dist
 )/
 '''
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
