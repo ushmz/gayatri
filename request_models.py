@@ -1,4 +1,3 @@
-from typing import List, Union
 from pydantic import BaseModel
 
 from consts import BEHAVIOR_LOG_QUERT, CLICK_DOC_LOG_QUERY, CLICK_HISTORY_LOG_QUERY

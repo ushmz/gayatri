@@ -1,7 +1,7 @@
 import configparser
 import json
 import re
-from typing import Any, Union, List
+from typing import Union, List
 from fastapi import FastAPI
 from pydantic import BaseModel
 import mysql.connector as mydb
@@ -10,7 +10,6 @@ from starlette.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from webxray.PhantomDriver import PhantomDriver
-from webxray.MySQLDriver import MySQLDriver
 from webxray.ParseURI import ParseURI
 
 from consts import BEHAVIOR_LOG_QUERT, CLICK_DOC_LOG_QUERY, CLICK_HISTORY_LOG_QUERY
@@ -170,10 +169,8 @@ async def post_analyze_url(request: XrayAnalyseRequest):
         url = unpadPKCS7(decrypt(request.url))
         url = url.decode('utf8')
         print('Encoded', url)
-        db_name = "wbxr_gayatri"
-        sql_driver = MySQLDriver(db_name)
 
-        cookies = get_cookie_domain(sql_driver.db, url) if history_filter(url) else []
+        cookies = analyze_url(url) if history_filter(url) else []
         print(cookies)
     except Exception as e:
         print(e)
@@ -181,38 +178,6 @@ async def post_analyze_url(request: XrayAnalyseRequest):
         status = True
 
     return JSONResponse(content={"status": status, "cookies": cookies})
-
-
-def get_cookie_domain(db: Any, uri: str) -> List[str]:
-    """
-    Check Stored data. If given uri is exist in stored data,
-    return cookie list contained in given uri.
-    If no cookie is matched, analyze uri and return result.
-    DB query return...
-    - 0 rows -> Given URL page is not stored in DB
-    - 1 row but null -> Given URL page has no 3rd-party cookie
-    - More than 0 row -> Given URL page has 3rd-party cookie(s)
-    Args:
-        uri(str): Any URI
-    Return:
-        domain_list(list[str]): (key: given uri, value: listed domain name of cookies)
-    """
-    db.execute(
-        "SELECT cookie.`domain` "
-        "FROM page "
-        "LEFT JOIN page_cookie_junction "
-        "ON page.id = page_cookie_junction.page_id "
-        "LEFT JOIN cookie "
-        "ON page_cookie_junction.cookie_id = cookie.id "
-        "WHERE page.start_uri_md5 = MD5(%s)",
-        (uri,),
-    )
-    fetched = db.fetchall()
-    if fetched:
-        "TODO: Format database output"
-        return fetched
-    else:
-        return analyze_url(uri)
 
 
 def analyze_url(uri: str) -> List[str]:
