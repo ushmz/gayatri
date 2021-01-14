@@ -11,6 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from webxray.PhantomDriver import PhantomDriver
 from webxray.ParseURI import ParseURI
+from webxray.MySQLDriver import MySQLDriver
 
 from consts import BEHAVIOR_LOG_QUERT, CLICK_DOC_LOG_QUERY, CLICK_HISTORY_LOG_QUERY
 from request_models import (
@@ -106,6 +107,7 @@ async def post_documents_log(request: DocumentLoggingRequest):
             CLICK_DOC_LOG_QUERY,
             (
                 request.uid,
+                request.timeOnPage,
                 request.pageUrl,
                 request.linkedPageNum,
             ),
@@ -137,8 +139,10 @@ async def post_history_log(request: HistoryLoggingRequest):
             CLICK_HISTORY_LOG_QUERY,
             (
                 request.uid,
+                request.timeOnPage,
                 request.linkedDocumentUrl,
                 request.linkedPageNum,
+                request.collapse,
             ),
         )
     except Exception as e:
@@ -165,12 +169,30 @@ async def post_analyze_url(request: XrayAnalyseRequest):
     status = False
     cookies = []
 
+    driver = MySQLDriver('wbxr_gayatri')
     try:
         url = unpadPKCS7(decrypt(request.url))
         url = url.decode('utf8')
         print('Encoded', url)
 
-        cookies = analyze_url(url) if history_filter(url) else []
+        if history_filter(url):
+            driver.db.execute(
+                "SELECT cookie.`domain` "
+                "FROM page "
+                "LEFT JOIN page_cookie_junction "
+                "ON page.id = page_cookie_junction.page_id "
+                "LEFT JOIN cookie "
+                "ON page_cookie_junction.cookie_id = cookie.id "
+                "WHERE page.start_uri_md5 = MD5(%s)",
+                (url,),
+            )
+            fetched = driver.db.fetchall()
+            if fetched:
+                cookies = fetched
+            else:
+                cookies = analyze_url(url)
+        else:
+            cookies = []
         print(cookies)
     except Exception as e:
         print(e)

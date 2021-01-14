@@ -5,11 +5,12 @@ BEHAVIOR_LOG_QUERT = (
 
 
 CLICK_DOC_LOG_QUERY = (
-    "INSERT INTO click_log_doc(uid, page_url, linked_page_num)" "VALUES(%s, %s, %s)"
+    "INSERT INTO click_log_doc(uid, time_on_page, page_url, linked_page_num)"
+    "VALUES(%s, %s, %s, %s)"
 )
 
 
 CLICK_HISTORY_LOG_QUERY = (
-    "INSERT INTO click_log_history(uid, linked_doc_url, linked_page_num)"
-    "VALUES(%s, %s, %s)"
+    "INSERT INTO click_log_history(uid, time_on_page, linked_doc_url, linked_page_num, collapse)"
+    "VALUES(%s, %s, %s, %s, %s)"
 )
