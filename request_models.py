@@ -17,21 +17,30 @@ class BehaviorLoggingRequest(BaseModel):
 
 class DocumentLoggingRequest(BaseModel):
     uid: str
+    timeOnPage: int
     pageUrl: str
     linkedPageNum: int
 
     def queryalize(self) -> str:
-        return CLICK_DOC_LOG_QUERY.format(self.uid, self.pageUrl, self.linkedPageNum)
+        return CLICK_DOC_LOG_QUERY.format(
+            self.uid, self.timeOnPage, self.pageUrl, self.linkedPageNum
+        )
 
 
 class HistoryLoggingRequest(BaseModel):
     uid: str
+    timeOnPage: int
     linkedDocumentUrl: str
     linkedPageNum: int
+    collapse: bool
 
     def queryalize(self) -> str:
         return CLICK_HISTORY_LOG_QUERY.format(
-            self.uid, self.linkedDocumentUrl, self.linkedPageNum
+            self.uid,
+            self.timeOnPage,
+            self.linkedDocumentUrl,
+            self.linkedPageNum,
+            self.collapse,
         )
 
 
