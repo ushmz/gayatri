@@ -75,6 +75,7 @@ async def post_behavior_logs(request: BehaviorLoggingRequest):
             BEHAVIOR_LOG_QUERT,
             (
                 request.uid,
+                request.taskName,
                 request.timeOnPage,
                 request.currentPage,
                 request.positionOnPage,
@@ -107,6 +108,7 @@ async def post_documents_log(request: DocumentLoggingRequest):
             CLICK_DOC_LOG_QUERY,
             (
                 request.uid,
+                request.taskName,
                 request.timeOnPage,
                 request.pageUrl,
                 request.linkedPageNum,
@@ -139,6 +141,7 @@ async def post_history_log(request: HistoryLoggingRequest):
             CLICK_HISTORY_LOG_QUERY,
             (
                 request.uid,
+                request.taskName,
                 request.timeOnPage,
                 request.linkedDocumentUrl,
                 request.linkedPageNum,

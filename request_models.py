@@ -5,30 +5,37 @@ from consts import BEHAVIOR_LOG_QUERT, CLICK_DOC_LOG_QUERY, CLICK_HISTORY_LOG_QU
 
 class BehaviorLoggingRequest(BaseModel):
     uid: str
+    taskName: str
     timeOnPage: int
     currentPage: int
     positionOnPage: int
 
     def queryalize(self) -> str:
         return BEHAVIOR_LOG_QUERT.format(
-            self.uid, self.timeOnPage, self.currentPage, self.positionOnPage
+            self.uid,
+            self.taskName,
+            self.timeOnPage,
+            self.currentPage,
+            self.positionOnPage,
         )
 
 
 class DocumentLoggingRequest(BaseModel):
     uid: str
+    taskName: str
     timeOnPage: int
     pageUrl: str
     linkedPageNum: int
 
     def queryalize(self) -> str:
         return CLICK_DOC_LOG_QUERY.format(
-            self.uid, self.timeOnPage, self.pageUrl, self.linkedPageNum
+            self.uid, self.taskName, self.timeOnPage, self.pageUrl, self.linkedPageNum
         )
 
 
 class HistoryLoggingRequest(BaseModel):
     uid: str
+    taskName: str
     timeOnPage: int
     linkedDocumentUrl: str
     linkedPageNum: int
@@ -37,6 +44,7 @@ class HistoryLoggingRequest(BaseModel):
     def queryalize(self) -> str:
         return CLICK_HISTORY_LOG_QUERY.format(
             self.uid,
+            self.taskName,
             self.timeOnPage,
             self.linkedDocumentUrl,
             self.linkedPageNum,
